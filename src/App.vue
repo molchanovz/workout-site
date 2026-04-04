@@ -80,11 +80,12 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from './composables/useAuth.js'
 
-const { currentUser, logout } = useAuth()
+const { currentUser, logout, handleGoogleCallback } = useAuth()
 const $route = useRoute()
+const router = useRouter()
 
 const avatarLetter = computed(() => {
   const name = currentUser.value?.name || currentUser.value?.email || '?'
@@ -100,7 +101,10 @@ function onClickOutside(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', onClickOutside))
+onMounted(() => {
+  handleGoogleCallback(router)
+  document.addEventListener('click', onClickOutside)
+})
 onUnmounted(() => document.removeEventListener('click', onClickOutside))
 </script>
 

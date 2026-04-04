@@ -46,6 +46,7 @@
         <div class="bar-left">
           <p class="detail-label">{{ selectedDayLabel }}</p>
           <div v-if="loading" class="loading">Загрузка...</div>
+          <div v-if="error" class="error-msg">{{ error }}</div>
           <template v-else-if="selectedTraining">
             <h2 class="detail-title">{{ selectedTraining.Title || 'Тренировка' }}</h2>
             <span class="meta-badge">⚡ {{ exerciseCount }} упражнений</span>
@@ -197,12 +198,15 @@ async function loadTrainings() {
 }
 
 async function createTraining() {
+  error.value = null
   try {
     const t = await api.training.new({ date: selectedDateStr.value })
+    console.log('createTraining result:', t)
     const id = typeof t === 'number' ? t : (t?.ID ?? t?.id)
     if (id) router.push(`/app/trainings/${id}`)
     else await loadTrainings()
   } catch (e) {
+    console.error('createTraining error:', e)
     error.value = e.message
   }
 }
@@ -350,7 +354,7 @@ onMounted(() => loadTrainings())
   right: 0;
   background: #111;
   border-top: 1px solid #222;
-  z-index: 200;
+  z-index: 300;
   padding: 20px 40px;
 }
 
@@ -475,6 +479,7 @@ onMounted(() => loadTrainings())
 }
 
 .loading { color: #555; font-size: 14px; }
+.error-msg { color: #f87171; font-size: 13px; margin-top: 4px; }
 .error { color: #f87171; font-size: 12px; margin-top: 8px; }
 
 @media (max-width: 768px) {

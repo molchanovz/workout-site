@@ -1,24 +1,24 @@
 import { ref } from 'vue'
-import router from "../router/index.js";
 
 const currentUser = ref(localStorage.getItem('token') ? { loggedIn: true } : null)
 
-// Забираем токен из URL после редиректа от Google
-const params = new URLSearchParams(window.location.search)
-const urlToken = params.get('token')
-if (urlToken) {
-  localStorage.setItem('token', urlToken)
-  window.history.replaceState({}, '', window.location.pathname)
-  currentUser.value = { loggedIn: true }
-  router.push("/app")
-}
-
 export function useAuth() {
+  function handleGoogleCallback(router) {
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      localStorage.setItem('token', urlToken)
+      window.history.replaceState({}, '', window.location.pathname)
+      currentUser.value = { loggedIn: true }
+      router.push("/app")
+    }
+  }
+
   function logout() {
     localStorage.removeItem('token')
     currentUser.value = null
     window.location.replace('/')
   }
 
-  return { currentUser, logout }
+  return { currentUser, logout, handleGoogleCallback }
 }
