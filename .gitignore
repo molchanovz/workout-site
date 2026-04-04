@@ -3,6 +3,7 @@
 node_modules
 .claude
 .vercel
+.env
 /dist
 /node_modules
 CLAUDE.md

@@ -5,7 +5,7 @@
     <!-- 7-day strip -->
     <div class="day-strip-wrap">
       <button class="arrow-btn" @click="shiftDay(-1)">&#8249;</button>
-      <div class="day-strip">
+      <div class="day-strip" ref="stripEl">
         <div
           v-for="day in weekDays"
           :key="day.dateStr"
@@ -96,11 +96,23 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api.js'
 
 const router = useRouter()
+const stripEl = ref(null)
+
+function scrollStripToActive() {
+  nextTick(() => {
+    if (!stripEl.value) return
+    const active = stripEl.value.querySelector('.day-item.active')
+    if (!active) return
+    const strip = stripEl.value
+    const itemCenter = active.offsetLeft + active.offsetWidth / 2
+    strip.scrollTo({ left: itemCenter - strip.offsetWidth / 2, behavior: 'smooth' })
+  })
+}
 
 const today = new Date()
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
@@ -118,10 +130,25 @@ function addDays(d, n) {
 const todayStr = toDateStr(today)
 const selectedDateStr = ref(todayStr)
 
+const windowWidth = ref(window.innerWidth)
+function onResize() { windowWidth.value = window.innerWidth }
+
+const SIDEBAR_WIDTH = 220
+const visibleCount = computed(() => {
+  const w = windowWidth.value
+  // на десктопе вычитаем сайдбар, на мобиле (<= 768) его нет
+  const contentW = w > 768 ? w - SIDEBAR_WIDTH : w
+  if (contentW >= 520) return 7
+  if (contentW >= 380) return 5
+  return 3
+})
+
 const weekDays = computed(() => {
   const sel = new Date(selectedDateStr.value)
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = addDays(sel, i - 3)
+  const count = visibleCount.value
+  const half = Math.floor(count / 2)
+  return Array.from({ length: count }, (_, i) => {
+    const d = addDays(sel, i - half)
     const ds = toDateStr(d)
     return {
       dateStr: ds,
@@ -231,9 +258,17 @@ watch(selectedDateStr, (val) => {
   }
 })
 
+watch(selectedDateStr, () => scrollStripToActive())
+
 onMounted(() => {
+  window.addEventListener('resize', onResize)
   loadedCenter = selectedDateStr.value
   loadTrainings()
+  scrollStripToActive()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
 })
 </script>
 
@@ -283,7 +318,6 @@ onMounted(() => {
 .day-strip {
   display: flex;
   flex: 1;
-  justify-content: space-between;
 }
 
 .day-item {
@@ -291,12 +325,12 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 14px;
+  padding: 8px 4px;
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s;
   position: relative;
-  min-width: 58px;
+  flex: 1;
   border: 1px solid transparent;
 }
 .day-item:hover:not(.active) { background: #1a1a1a; }
@@ -571,5 +605,73 @@ onMounted(() => {
   color: #f87171;
   font-size: 13px;
   margin-top: 12px;
+}
+
+/* Планшет / сжатый десктоп: сайдбар есть, но места мало */
+@media (max-width: 960px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 24px 16px 80px;
+    min-height: unset;
+  }
+
+  .page-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .day-strip-wrap {
+    padding: 8px 10px;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .arrow-btn {
+    font-size: 20px;
+    padding: 4px 2px;
+  }
+
+  .day-num {
+    font-size: 15px;
+  }
+
+  .training-section {
+    padding: 20px 18px;
+    margin-bottom: 16px;
+  }
+
+  .training-title {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+
+  .training-actions {
+    flex-wrap: wrap;
+  }
+
+  .btn-primary, .btn-secondary {
+    flex: 1;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px 18px;
+  }
+
+  .week-bars {
+    height: 52px;
+  }
 }
 </style>

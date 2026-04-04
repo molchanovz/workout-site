@@ -10,17 +10,15 @@ if (urlToken) {
   localStorage.setItem('token', urlToken)
   window.history.replaceState({}, '', window.location.pathname)
   currentUser.value = { loggedIn: true }
+  router.push("/app")
 }
 
 export function useAuth() {
   function logout() {
     localStorage.removeItem('token')
     currentUser.value = null
-
-    router.push("/")
+    window.location.replace('/')
   }
-
-  router.push("/app")
 
   return { currentUser, logout }
 }

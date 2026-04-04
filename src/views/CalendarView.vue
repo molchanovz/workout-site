@@ -476,4 +476,97 @@ onMounted(() => loadTrainings())
 
 .loading { color: #555; font-size: 14px; }
 .error { color: #f87171; font-size: 12px; margin-top: 8px; }
+
+@media (max-width: 768px) {
+  .calendar-page {
+    padding: 20px 12px 80px;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .cal-header {
+    margin-bottom: 14px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .month-label {
+    font-size: 14px;
+    min-width: 120px;
+  }
+
+  .arrow-btn {
+    font-size: 18px;
+    padding: 3px 8px;
+  }
+
+  .weekday-name {
+    font-size: 10px;
+    padding: 3px 0;
+  }
+
+  .days-grid {
+    gap: 2px;
+    /* fixed height so calendar doesn't collapse */
+    min-height: 300px;
+  }
+
+  .day-cell {
+    border-radius: 8px;
+    min-height: 44px;
+  }
+
+  .cell-num {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .bottom-bar {
+    left: 0;
+    padding: 14px 16px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-bar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .bar-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .bar-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary, .btn-secondary, .btn-create {
+    flex: 1;
+    text-align: center;
+    padding: 11px 14px;
+  }
+
+  .btn-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+  }
+
+  .bottom-bar-inner {
+    position: relative;
+  }
+
+  .detail-title {
+    font-size: 16px;
+  }
+}
 </style>
