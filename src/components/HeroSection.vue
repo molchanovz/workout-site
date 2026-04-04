@@ -5,13 +5,18 @@
       <h1>BEATS</h1>
       <h1>MOTIVATION</h1>
 
-      <GoogleLoginButton class="cta-google" />
+      <RouterLink v-if="currentUser" to="/app" class="cta-start">Начать тренировку</RouterLink>
+      <GoogleLoginButton v-else class="cta-google" />
     </div>
   </section>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import GoogleLoginButton from './GoogleLoginButton.vue'
+import { useAuth } from '../composables/useAuth.js'
+
+const { currentUser } = useAuth()
 </script>
 
 <style scoped>
@@ -56,6 +61,32 @@ h1{
   margin-top: 40px;
 }
 
+.cta-start {
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #4ade80;
+  border: 2px solid #4ade80;
+  padding: 16px 36px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.cta-start:hover {
+  background: #4ade80;
+  color: #000;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 768px) {
   .hero {
     height: 100svh;
@@ -65,7 +96,8 @@ h1{
     font-size: 48px;
   }
 
-  .cta-google {
+  .cta-google,
+  .cta-start {
     margin-top: 32px;
   }
 }

@@ -278,7 +278,6 @@ onUnmounted(() => {
   background: #0d0d0d;
   color: #fff;
   padding: 48px 48px;
-  max-width: 960px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 

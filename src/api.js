@@ -11,7 +11,14 @@ async function send(method, params) {
     body: JSON.stringify({ jsonrpc: '2.0', method, params, id: rpcId++ })
   })
   const data = await res.json()
-  if (data.error) throw new Error(data.error.message)
+  if (data.error) {
+    if (data.error.message?.toLowerCase().includes('unauthorized') || res.status === 401) {
+      localStorage.removeItem('token')
+      window.location.replace('/')
+      return
+    }
+    throw new Error(data.error.message)
+  }
   return data.result
 }
 

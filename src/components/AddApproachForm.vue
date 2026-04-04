@@ -46,6 +46,7 @@ async function submit() {
 <style scoped>
 .add-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
 }
@@ -56,7 +57,8 @@ async function submit() {
   color: white;
   padding: 6px 10px;
   border-radius: 6px;
-  width: 80px;
+  min-width: 0;
+  flex: 1;
   font-size: 13px;
 }
 

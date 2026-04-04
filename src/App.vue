@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentUser" class="app-layout">
+  <div v-if="currentUser && $route.path !== '/'" class="app-layout">
     <!-- Sidebar (desktop only) -->
     <aside class="sidebar">
       <div class="sidebar-logo">TRAINING</div>
@@ -74,7 +74,7 @@
     </nav>
   </div>
 
-  <!-- Not logged in — just show landing -->
+  <!-- Not logged in or on landing page — just show the view -->
   <RouterView v-else />
 </template>
 
@@ -276,6 +276,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 /* Main content */
 .main-content {
   margin-left: 220px;
+  width: calc(100% - 220px);
   flex: 1;
   height: 100vh;
   overflow: hidden;
