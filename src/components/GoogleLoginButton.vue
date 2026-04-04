@@ -12,7 +12,7 @@
 
 <script setup>
 function login() {
-  window.location.href = 'http://localhost:8075/auth/google'
+  window.location.href = '/auth/google'
 }
 </script>
 

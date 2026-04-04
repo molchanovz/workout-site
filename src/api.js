@@ -5,7 +5,7 @@ async function send(method, params) {
   const token = localStorage.getItem('token')
   if (token) headers['Authorization2'] = token
 
-  const res = await fetch('http://localhost:8075/v1/rpc/', {
+  const res = await fetch('/api/v1/rpc/', {
     method: 'POST',
     headers,
     body: JSON.stringify({ jsonrpc: '2.0', method, params, id: rpcId++ })
