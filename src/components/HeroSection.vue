@@ -17,14 +17,25 @@ import GoogleLoginButton from './GoogleLoginButton.vue'
 <style scoped>
 .hero{
   height:80vh;
-  background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
-  url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070');
-  background-size:cover;
-  background-position:center;
+  position: relative;
   display:flex;
   align-items:center;
   justify-content:center;
   text-align:center;
+  padding: 0 20px;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
+    url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070');
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px);
+  transform: scale(1.05);
 }
 
 h1{
@@ -34,6 +45,8 @@ h1{
 }
 
 .overlay {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,5 +54,19 @@ h1{
 
 .cta-google {
   margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 100svh;
+  }
+
+  h1 {
+    font-size: 48px;
+  }
+
+  .cta-google {
+    margin-top: 32px;
+  }
 }
 </style>
