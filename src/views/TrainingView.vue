@@ -2,7 +2,7 @@
   <div class="training-view">
     <div class="top-bar">
       <button class="back-btn" @click="router.push('/app')">← Назад</button>
-      <h2 v-if="training">{{ formatDate(training.Date) }}</h2>
+      <h2 v-if="training">{{ formatDate(training.date) }}</h2>
     </div>
 
     <div v-if="loading" class="loading">Загрузка...</div>
@@ -11,9 +11,9 @@
     <template v-if="training">
       <ExerciseBlock
         v-for="item in training.exercises"
-        :key="item.exercise.ID"
+        :key="item.exercise.id"
         :item="item"
-        :trainingId="training.ID"
+        :trainingId="training.id"
       />
 
       <button class="add-exercise-btn" @click="showModal = true">+ Добавить упражнение</button>
@@ -24,59 +24,34 @@
       <div class="modal">
         <h3>Добавить упражнение</h3>
 
-        <!-- Шаг 1: топ-уровень категорий -->
-        <div v-if="!selectedParent && !selectedCategory">
-          <p class="label">Категория</p>
-          <div v-if="categoriesLoading">Загрузка...</div>
+        <!-- Поиск упражнения -->
+        <div v-if="!selectedExercise">
+          <input
+            v-model="searchQuery"
+            class="search-input"
+            placeholder="Название упражнения..."
+            autofocus
+          />
+          <div v-if="searchLoading" class="label">Поиск...</div>
           <div class="list">
             <button
-              v-for="cat in categories"
-              :key="cat.ID"
-              class="list-item"
-              @click="selectParent(cat)"
-            >{{ cat.Title }}</button>
-          </div>
-        </div>
-
-        <!-- Шаг 2: подкатегории -->
-        <div v-else-if="selectedParent && !selectedCategory">
-          <button class="back-link" @click="selectedParent = null; subcategories = []">← {{ selectedParent.Title }}</button>
-          <p class="label">Подкатегория</p>
-          <div v-if="subcategoriesLoading">Загрузка...</div>
-          <div class="list">
-            <button
-              v-for="cat in subcategories"
-              :key="cat.ID"
-              class="list-item"
-              @click="selectCategory(cat)"
-            >{{ cat.Title }}</button>
-          </div>
-          <div v-if="!subcategoriesLoading && subcategories.length === 0" class="empty">Нет подкатегорий</div>
-        </div>
-
-        <!-- Шаг 3: упражнения -->
-        <div v-else-if="!selectedExercise">
-          <button class="back-link" @click="selectedCategory = null; exercises = []">← {{ selectedCategory.Title }}</button>
-          <div v-if="exercisesLoading">Загрузка...</div>
-          <div class="list">
-            <button
-              v-for="ex in exercises"
-              :key="ex.ID"
+              v-for="ex in searchResults"
+              :key="ex.id"
               class="list-item"
               @click="selectExercise(ex)"
-            >{{ ex.Title }}</button>
+            >{{ ex.title }}</button>
           </div>
-          <div v-if="!exercisesLoading && exercises.length === 0" class="empty">Нет упражнений</div>
+          <div v-if="!searchLoading && searchQuery && searchResults.length === 0" class="empty">Ничего не найдено</div>
         </div>
 
-        <!-- Шаг 4: добавление подхода -->
+        <!-- Добавление подхода -->
         <div v-else>
-          <button class="back-link" @click="selectedExercise = null">← {{ selectedExercise.Title }}</button>
+          <button class="back-link" @click="selectedExercise = null">← {{ selectedExercise.title }}</button>
           <p class="label">Добавить подход</p>
           <AddApproachForm
-            :trainingId="training.ID"
-            :exerciseId="selectedExercise.ID"
-            :typeId="selectedExercise.TypeID"
+            :trainingId="training.id"
+            :exerciseId="selectedExercise.id"
+            :typeId="selectedExercise.typeId"
             @added="onApproachAdded"
           />
         </div>
@@ -88,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api.js'
 import ExerciseBlock from '../components/ExerciseBlock.vue'
@@ -102,14 +77,9 @@ const loading = ref(false)
 const error = ref(null)
 
 const showModal = ref(false)
-const categories = ref([])
-const categoriesLoading = ref(false)
-const selectedParent = ref(null)
-const subcategories = ref([])
-const subcategoriesLoading = ref(false)
-const selectedCategory = ref(null)
-const exercises = ref([])
-const exercisesLoading = ref(false)
+const searchQuery = ref('')
+const searchResults = ref([])
+const searchLoading = ref(false)
 const selectedExercise = ref(null)
 
 function formatDate(str) {
@@ -130,64 +100,37 @@ async function load() {
   }
 }
 
-async function openModal() {
-  showModal.value = true
-  if (categories.value.length) return
-  categoriesLoading.value = true
-  try {
-    categories.value = await api.exercise.categoryList({})
-  } finally {
-    categoriesLoading.value = false
-  }
-}
-
-async function selectParent(cat) {
-  selectedParent.value = cat
-  subcategoriesLoading.value = true
-  try {
-    subcategories.value = await api.exercise.categoryList({ parentId: cat.ID })
-  } finally {
-    subcategoriesLoading.value = false
-  }
-}
-
-async function selectCategory(cat) {
-  selectedCategory.value = cat
-  exercisesLoading.value = true
-  try {
-    exercises.value = await api.exercise.list({ categoryId: cat.ID })
-  } finally {
-    exercisesLoading.value = false
-  }
-}
-
 function selectExercise(ex) {
   selectedExercise.value = ex
 }
 
 function closeModal() {
   showModal.value = false
-  selectedParent.value = null
-  subcategories.value = []
-  selectedCategory.value = null
-  exercises.value = []
+  searchQuery.value = ''
+  searchResults.value = []
   selectedExercise.value = null
 }
 
 async function onApproachAdded() {
-  showModal.value = false
-  selectedParent.value = null
-  subcategories.value = []
-  selectedCategory.value = null
-  exercises.value = []
-  selectedExercise.value = null
+  closeModal()
   await load()
 }
 
-// Load categories when modal opens
-import { watch } from 'vue'
-watch(showModal, (val) => {
-  if (val && categories.value.length === 0) openModal()
+let searchTimer = null
+watch(searchQuery, (val) => {
+  clearTimeout(searchTimer)
+  if (!val) {
+    searchResults.value = []
+    return
+  }
+  searchTimer = setTimeout(async () => {
+    searchLoading.value = true
+    try {
+      searchResults.value = await api.exercise.search({ title: val })
+    } finally {
+      searchLoading.value = false
+    }
+  }, 300)
 })
 
 onMounted(load)
@@ -318,6 +261,23 @@ onMounted(load)
   cursor: pointer;
   width: 100%;
   margin-top: 8px;
+}
+
+.search-input {
+  width: 100%;
+  background: #222;
+  border: 1px solid #444;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #4ade80;
 }
 
 .empty {

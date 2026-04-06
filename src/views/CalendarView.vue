@@ -48,7 +48,7 @@
           <div v-if="loading" class="loading">Загрузка...</div>
           <div v-if="error" class="error-msg">{{ error }}</div>
           <template v-else-if="selectedTraining">
-            <h2 class="detail-title">{{ selectedTraining.Title || 'Тренировка' }}</h2>
+            <h2 class="detail-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
             <span class="meta-badge">⚡ {{ exerciseCount }} упражнений</span>
           </template>
           <template v-else>
@@ -58,8 +58,8 @@
 
         <div class="bar-actions">
           <template v-if="!loading && selectedTraining">
-            <button class="btn-primary" @click="openTraining(selectedTraining.ID)">Начать</button>
-            <button class="btn-secondary" @click="openTraining(selectedTraining.ID)">Редактировать</button>
+            <button class="btn-primary" @click="openTraining(selectedTraining.id)">Начать</button>
+            <button class="btn-secondary" @click="openTraining(selectedTraining.id)">Редактировать</button>
           </template>
           <template v-else-if="!loading">
             <button class="btn-create" @click="createTraining">+ Создать тренировку</button>
@@ -164,7 +164,7 @@ const error = ref(null)
 const trainingsMap = computed(() => {
   const m = new Map()
   for (const t of trainings.value) {
-    if (t.Date) m.set(t.Date.slice(0, 10), t)
+    if (t.date) m.set(t.date.slice(0, 10), t)
   }
   return m
 })
@@ -202,7 +202,7 @@ async function createTraining() {
   try {
     const t = await api.training.new({ date: selectedDateStr.value })
     console.log('createTraining result:', t)
-    const id = typeof t === 'number' ? t : (t?.ID ?? t?.id)
+    const id = typeof t === 'number' ? t : (t?.id ?? t?.id)
     if (id) router.push(`/app/trainings/${id}`)
     else await loadTrainings()
   } catch (e) {

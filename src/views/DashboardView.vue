@@ -27,13 +27,13 @@
 
       <div v-if="loading" class="loading">Загрузка...</div>
       <template v-else-if="selectedTraining">
-        <h2 class="training-title">{{ selectedTraining.Title || 'Тренировка' }}</h2>
+        <h2 class="training-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
         <div class="training-meta">
           <span class="meta-badge">⚡ {{ exerciseCount }} упражнений</span>
         </div>
         <div class="training-actions">
-          <button class="btn-primary" @click="openTraining(selectedTraining.ID)">Начать тренировку</button>
-          <button class="btn-secondary" @click="openTraining(selectedTraining.ID)">Редактировать</button>
+          <button class="btn-primary" @click="openTraining(selectedTraining.id)">Начать тренировку</button>
+          <button class="btn-secondary" @click="openTraining(selectedTraining.id)">Редактировать</button>
         </div>
       </template>
       <template v-else>
@@ -76,14 +76,14 @@
         <div v-if="recentTrainings.length" class="recent-list">
           <div
             v-for="t in recentTrainings"
-            :key="t.ID"
+            :key="t.id"
             class="recent-item"
-            @click="openTraining(t.ID)"
+            @click="openTraining(t.id)"
           >
             <div class="recent-icon">🏋️</div>
             <div class="recent-info">
-              <span class="recent-name">{{ t.Title || 'Тренировка' }}</span>
-              <span class="recent-date">{{ formatDate(t.Date) }}</span>
+              <span class="recent-name">{{ t.title || 'Тренировка' }}</span>
+              <span class="recent-date">{{ formatDate(t.date) }}</span>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ const error = ref(null)
 const trainingsMap = computed(() => {
   const m = new Map()
   for (const t of trainings.value) {
-    if (t.Date) m.set(t.Date.slice(0, 10), t)
+    if (t.date) m.set(t.date.slice(0, 10), t)
   }
   return m
 })
@@ -188,14 +188,14 @@ const exerciseCount = computed(() => {
 
 const recentTrainings = computed(() =>
   [...trainings.value]
-    .filter(t => t.Date && t.Date.slice(0, 10) <= todayStr)
-    .sort((a, b) => b.Date.localeCompare(a.Date))
+    .filter(t => t.date && t.date.slice(0, 10) <= todayStr)
+    .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5)
 )
 
 const last30Count = computed(() => {
   const cutoff = toDateStr(addDays(today, -30))
-  return trainings.value.filter(t => t.Date && t.Date.slice(0, 10) >= cutoff && t.Date.slice(0, 10) <= todayStr).length
+  return trainings.value.filter(t => t.date && t.date.slice(0, 10) >= cutoff && t.date.slice(0, 10) <= todayStr).length
 })
 
 const weekBars = computed(() =>
@@ -236,7 +236,7 @@ async function loadTrainings() {
 async function createTraining() {
   try {
     const t = await api.training.new({ date: selectedDateStr.value })
-    const id = typeof t === 'number' ? t : (t?.ID ?? t?.id)
+    const id = typeof t === 'number' ? t : t?.id
     if (id) router.push(`/app/trainings/${id}`)
     else await loadTrainings()
   } catch (e) {

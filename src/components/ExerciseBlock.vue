@@ -1,24 +1,24 @@
 <template>
   <div class="exercise-block">
-    <h3 class="exercise-title">{{ item.exercise.Title }}</h3>
+    <h3 class="exercise-title">{{ item.exercise.title }}</h3>
 
     <div class="approaches">
       <div
         v-for="approach in approaches"
-        :key="approach.ID"
+        :key="approach.id"
         class="approach-row"
       >
-        <span v-if="item.exercise.TypeID === 1">{{ approach.Reps }} × {{ approach.Weight }} кг</span>
-        <span v-else>{{ approach.Duration }} сек</span>
-        <button class="del-btn" @click="deleteApproach(approach.ID)">×</button>
+        <span v-if="item.exercise.typeId === 1">{{ approach.reps }} × {{ approach.weight }} кг</span>
+        <span v-else>{{ approach.duration }} сек</span>
+        <button class="del-btn" @click="deleteApproach(approach.id)">×</button>
       </div>
       <div v-if="approaches.length === 0" class="empty">Нет подходов</div>
     </div>
 
     <AddApproachForm
       :trainingId="trainingId"
-      :exerciseId="item.exercise.ID"
-      :typeId="item.exercise.TypeID"
+      :exerciseId="item.exercise.id"
+      :typeId="item.exercise.typeId"
       @added="reload"
     />
   </div>
@@ -49,7 +49,7 @@ function reload() {
 
 async function deleteApproach(approachId) {
   await api.training.deleteApproach({ trainingId: props.trainingId, approachId })
-  approaches.value = approaches.value.filter(a => a.ID !== approachId)
+  approaches.value = approaches.value.filter(a => a.id !== approachId)
 }
 
 onMounted(reload)
