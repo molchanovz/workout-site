@@ -136,6 +136,30 @@ export interface ITrainingUpdateTimedApproachParams {
   duration: number
 }
 
+export interface IStatsPREntry {
+  exerciseId: number,
+  exerciseTitle: string,
+  maxWeight: number,
+  reps: number,
+  est1rm: number,
+  achievedAt: string
+}
+
+export interface IStatsWeekVolume {
+  week: string,
+  volume: number
+}
+
+export interface IStatsStreakStats {
+  currentStreak: number,
+  monthCount: number,
+  yearCount: number
+}
+
+export interface IStatsWeeklyVolumeParams {
+  weeks: number
+}
+
 export const factory = (send: any) => ({
   exercise: {
     add(params: IExerciseAddParams): Promise<number> {
@@ -187,6 +211,17 @@ export const factory = (send: any) => ({
     },
     updateTimedApproach(params: ITrainingUpdateTimedApproachParams): Promise<boolean> {
       return send('training.UpdateTimedApproach', params)
+    }
+  },
+  stats: {
+    personalRecords(): Promise<Array<IStatsPREntry>> {
+      return send('stats.PersonalRecords', {})
+    },
+    weeklyVolume(params: IStatsWeeklyVolumeParams): Promise<Array<IStatsWeekVolume>> {
+      return send('stats.WeeklyVolume', params)
+    },
+    streak(): Promise<IStatsStreakStats> {
+      return send('stats.Streak', {})
     }
   }
 })

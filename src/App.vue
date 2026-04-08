@@ -13,6 +13,10 @@
           <span class="nav-icon">📅</span>
           <span>Календарь</span>
         </RouterLink>
+        <RouterLink to="/app/stats" :class="{ active: $route.path.startsWith('/app/stats') }">
+          <span class="nav-icon">📈</span>
+          <span>Прогресс</span>
+        </RouterLink>
       </nav>
 
       <div class="sidebar-user" @click="menuOpen = !menuOpen" ref="userRef">
@@ -61,6 +65,14 @@
           </svg>
         </span>
         <span class="bottom-nav-label">Календарь</span>
+      </RouterLink>
+      <RouterLink to="/app/stats" class="bottom-nav-item" :class="{ active: $route.path.startsWith('/app/stats') }">
+        <span class="bottom-nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="bottom-nav-label">Прогресс</span>
       </RouterLink>
       <RouterLink to="/app/profile" class="bottom-nav-item" :class="{ active: $route.path.startsWith('/app/profile') }">
         <span class="bottom-nav-icon">
