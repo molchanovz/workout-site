@@ -49,7 +49,7 @@
           <div v-if="error" class="error-msg">{{ error }}</div>
           <template v-else-if="selectedTraining">
             <h2 class="detail-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
-            <span class="meta-badge">⚡ {{ exerciseCount }} упражнений</span>
+            <span class="meta-badge">⚡ {{ exerciseCount }} {{ pluralExercise(exerciseCount) }}</span>
           </template>
           <template v-else>
             <p class="no-training">На этот день нет тренировки</p>
@@ -60,6 +60,7 @@
           <template v-if="!loading && selectedTraining">
             <button class="btn-primary" @click="openTraining(selectedTraining.id)">Начать</button>
             <button class="btn-secondary" @click="openTraining(selectedTraining.id)">Редактировать</button>
+            <button class="btn-danger" @click="deleteTraining(selectedTraining.id)">Удалить</button>
           </template>
           <template v-else-if="!loading">
             <button class="btn-create" @click="createTraining">+ Создать тренировку</button>
@@ -176,7 +177,7 @@ const selectedTraining = computed(() =>
 const exerciseCount = computed(() => {
   const t = selectedTraining.value
   if (!t) return 0
-  return t.exercises?.length ?? t.ExerciseIDs?.length ?? 0
+  return t.exerciseCount ?? t.exercises?.length ?? t.ExerciseIDs?.length ?? 0
 })
 
 async function loadTrainings() {
@@ -211,8 +212,28 @@ async function createTraining() {
   }
 }
 
+function pluralExercise(n) {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod100 >= 11 && mod100 <= 19) return 'упражнений'
+  if (mod10 === 1) return 'упражнение'
+  if (mod10 >= 2 && mod10 <= 4) return 'упражнения'
+  return 'упражнений'
+}
+
 function openTraining(id) {
   router.push(`/app/trainings/${id}`)
+}
+
+async function deleteTraining(id) {
+  if (!confirm('Удалить тренировку?')) return
+  try {
+    await api.training.delete({ id })
+    trainings.value = trainings.value.filter(t => t.id !== id)
+    selectedDateStr.value = null
+  } catch (e) {
+    error.value = e.message
+  }
 }
 
 onMounted(() => loadTrainings())
@@ -440,6 +461,18 @@ onMounted(() => loadTrainings())
   transition: border-color 0.15s;
 }
 .btn-secondary:hover { border-color: #555; }
+
+.btn-danger {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #3a1e1e;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn-danger:hover { border-color: #f87171; background: rgba(248,113,113,.08); }
 
 .btn-create {
   background: transparent;

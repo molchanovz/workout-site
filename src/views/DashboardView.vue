@@ -29,11 +29,12 @@
       <template v-else-if="selectedTraining">
         <h2 class="training-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
         <div class="training-meta">
-          <span class="meta-badge">⚡ {{ exerciseCount }} упражнений</span>
+          <span class="meta-badge">⚡ {{ exerciseCount }} {{ pluralExercise(exerciseCount) }}</span>
         </div>
         <div class="training-actions">
           <button class="btn-primary" @click="openTraining(selectedTraining.id)">Начать тренировку</button>
           <button class="btn-secondary" @click="openTraining(selectedTraining.id)">Редактировать</button>
+          <button class="btn-danger" @click="deleteTraining(selectedTraining.id)">Удалить</button>
         </div>
       </template>
       <template v-else>
@@ -183,7 +184,7 @@ const selectedTraining = computed(() => trainingsMap.value.get(selectedDateStr.v
 const exerciseCount = computed(() => {
   const t = selectedTraining.value
   if (!t) return 0
-  return t.exercises?.length ?? t.ExerciseIDs?.length ?? 0
+  return t.exerciseCount ?? t.exercises?.length ?? t.ExerciseIDs?.length ?? 0
 })
 
 const recentTrainings = computed(() =>
@@ -244,8 +245,27 @@ async function createTraining() {
   }
 }
 
+function pluralExercise(n) {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod100 >= 11 && mod100 <= 19) return 'упражнений'
+  if (mod10 === 1) return 'упражнение'
+  if (mod10 >= 2 && mod10 <= 4) return 'упражнения'
+  return 'упражнений'
+}
+
 function openTraining(id) {
   router.push(`/app/trainings/${id}`)
+}
+
+async function deleteTraining(id) {
+  if (!confirm('Удалить тренировку?')) return
+  try {
+    await api.training.delete({ id })
+    trainings.value = trainings.value.filter(t => t.id !== id)
+  } catch (e) {
+    error.value = e.message
+  }
 }
 
 let loadedCenter = null
@@ -450,6 +470,18 @@ onUnmounted(() => {
   transition: border-color 0.15s;
 }
 .btn-secondary:hover { border-color: #555; }
+
+.btn-danger {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #3a1e1e;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn-danger:hover { border-color: #f87171; background: rgba(248,113,113,.08); }
 
 .no-training {
   color: #555;
