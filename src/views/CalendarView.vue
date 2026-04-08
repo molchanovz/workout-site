@@ -48,7 +48,7 @@
           <div v-if="loading" class="loading">Загрузка...</div>
           <div v-if="error" class="error-msg">{{ error }}</div>
           <template v-else-if="selectedTraining">
-            <h2 class="detail-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
+            <h2 class="detail-title">{{ selectedTraining.name || 'Тренировка' }}</h2>
             <span class="meta-badge">⚡ {{ exerciseCount }} {{ pluralExercise(exerciseCount) }}</span>
           </template>
           <template v-else>

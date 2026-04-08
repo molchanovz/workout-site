@@ -27,7 +27,7 @@
 
       <div v-if="loading" class="loading">Загрузка...</div>
       <template v-else-if="selectedTraining">
-        <h2 class="training-title">{{ selectedTraining.title || 'Тренировка' }}</h2>
+        <h2 class="training-title">{{ selectedTraining.name || 'Тренировка' }}</h2>
         <div class="training-meta">
           <span class="meta-badge">⚡ {{ exerciseCount }} {{ pluralExercise(exerciseCount) }}</span>
         </div>
@@ -83,7 +83,7 @@
           >
             <div class="recent-icon">🏋️</div>
             <div class="recent-info">
-              <span class="recent-name">{{ t.title || 'Тренировка' }}</span>
+              <span class="recent-name">{{ t.name || 'Тренировка' }}</span>
               <span class="recent-date">{{ formatDate(t.date) }}</span>
             </div>
           </div>

@@ -63,7 +63,8 @@ export interface ITraining {
   endedAt?: string,
   statusId: number,
   date: string,
-  exerciseCount: number
+  exerciseCount: number,
+  name?: string
 }
 
 export interface ITrainingAddApproachParams {
@@ -102,6 +103,7 @@ export interface ITrainingDetail {
   statusId: number,
   date: string,
   exerciseCount: number,
+  name?: string,
   exercises: Array<IExerciseWithApproaches>
 }
 
