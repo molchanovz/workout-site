@@ -3,8 +3,7 @@
     <h1 class="page-title">Главная</h1>
 
     <!-- 7-day strip -->
-    <div class="day-strip-wrap">
-      <button class="arrow-btn" @click="shiftDay(-1)">&#8249;</button>
+    <div class="day-strip-wrap" @wheel.prevent="onWheel" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">      <button class="arrow-btn" @click="shiftDay(-1)">&#8249;</button>
       <div class="day-strip" ref="stripEl">
         <div
           v-for="day in weekDays"
@@ -211,6 +210,29 @@ function shiftDay(n) {
   const d = new Date(selectedDateStr.value)
   d.setDate(d.getDate() + n)
   selectedDateStr.value = toDateStr(d)
+}
+
+// Mouse wheel — desktop
+let wheelAccum = 0
+let wheelTimer = null
+function onWheel(e) {
+  wheelAccum += e.deltaX || e.deltaY
+  clearTimeout(wheelTimer)
+  wheelTimer = setTimeout(() => { wheelAccum = 0 }, 200)
+  if (Math.abs(wheelAccum) >= 50) {
+    shiftDay(wheelAccum > 0 ? 1 : -1)
+    wheelAccum = 0
+  }
+}
+
+// Touch swipe — mobile
+let touchStartX = 0
+function onTouchStart(e) {
+  touchStartX = e.touches[0].clientX
+}
+function onTouchEnd(e) {
+  const dx = e.changedTouches[0].clientX - touchStartX
+  if (Math.abs(dx) > 40) shiftDay(dx < 0 ? 1 : -1)
 }
 
 function formatDate(str) {
