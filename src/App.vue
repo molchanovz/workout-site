@@ -306,7 +306,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
   .main-content {
     margin-left: 0;
-    height: calc(100vh - 64px);
+    height: calc(100vh - 64px - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -317,11 +317,14 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
     bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
     background: #0a0a0a;
     border-top: 1px solid #1a1a1a;
     z-index: 200;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-nav-item {
+    height: 64px;
   }
 
   .bottom-nav-item {
