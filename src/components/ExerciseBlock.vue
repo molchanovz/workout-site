@@ -205,7 +205,12 @@ function openEditor(a, field) {
   const idx = approaches.value.findIndex(x => x.id === a.id)
   editing.value = { id: a.id, field, index: idx }
   editVal.value = String(a[field] ?? '')
-  nextTick(() => editorInput.value?.focus())
+  nextTick(() => {
+    const el = editorInput.value
+    if (!el) return
+    el.focus()
+    setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320)
+  })
 }
 
 function closeEditor() {
