@@ -5,17 +5,14 @@
       <div class="sidebar-logo">KINETROVA</div>
 
       <nav class="sidebar-nav">
-        <RouterLink to="/app" :class="{ active: $route.path === '/app' }">
-          <span class="nav-icon">🏠</span>
-          <span>Главная</span>
-        </RouterLink>
-        <RouterLink to="/app/stats" :class="{ active: $route.path.startsWith('/app/stats') }">
-          <span class="nav-icon">📈</span>
-          <span>Прогресс</span>
-        </RouterLink>
-        <RouterLink to="/app/calendar" :class="{ active: $route.path.startsWith('/app/calendar') }">
-          <span class="nav-icon">📅</span>
-          <span>Календарь</span>
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          :class="{ active: isActive(item) }"
+        >
+          <span class="nav-dot"></span>
+          <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
 
@@ -34,7 +31,7 @@
               <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            Log out
+            Выйти
           </button>
         </div>
       </div>
@@ -47,41 +44,15 @@
 
     <!-- Bottom nav (mobile only) -->
     <nav class="bottom-nav">
-      <RouterLink to="/app" class="bottom-nav-item" :class="{ active: $route.path === '/app' }">
-        <span class="bottom-nav-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M9 21V12h6v9" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="bottom-nav-label">Главная</span>
-      </RouterLink>
-      <RouterLink to="/app/stats" class="bottom-nav-item" :class="{ active: $route.path.startsWith('/app/stats') }">
-        <span class="bottom-nav-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="bottom-nav-label">Прогресс</span>
-      </RouterLink>
-      <RouterLink to="/app/calendar" class="bottom-nav-item" :class="{ active: $route.path.startsWith('/app/calendar') }">
-        <span class="bottom-nav-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3 9h18" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="bottom-nav-label">Календарь</span>
-      </RouterLink>
-      <RouterLink to="/app/profile" class="bottom-nav-item" :class="{ active: $route.path.startsWith('/app/profile') }">
-        <span class="bottom-nav-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="bottom-nav-label">Профиль</span>
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.path"
+        :to="item.path"
+        class="nav-item"
+        :class="{ active: isActive(item) }"
+      >
+        <span class="nav-dot"></span>
+        <span>{{ item.label }}</span>
       </RouterLink>
     </nav>
   </div>
@@ -98,6 +69,18 @@ import { useAuth } from './composables/useAuth.js'
 const { currentUser, logout, handleGoogleCallback } = useAuth()
 const $route = useRoute()
 const router = useRouter()
+
+const navItems = [
+  { path: '/app', label: 'Сегодня', exact: true },
+  { path: '/app/stats', label: 'Прогресс' },
+  { path: '/app/calendar', label: 'Календарь' },
+  { path: '/app/profile', label: 'Профиль' },
+]
+
+function isActive(item) {
+  if (item.exact) return $route.path === item.path
+  return $route.path.startsWith(item.path)
+}
 
 const avatarLetter = computed(() => {
   const name = currentUser.value?.name || currentUser.value?.email || '?'
@@ -126,12 +109,12 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   min-height: 100vh;
 }
 
-/* Sidebar */
+/* ═══════════ Sidebar (desktop) ═══════════ */
 .sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: #0a0a0a;
-  border-right: 1px solid #1a1a1a;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: 28px 16px;
@@ -144,9 +127,9 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
 .sidebar-logo {
   font-weight: 800;
-  font-size: 18px;
-  color: #fff;
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  color: var(--ink);
+  letter-spacing: 0.14em;
   padding: 0 12px;
   margin-bottom: 36px;
 }
@@ -154,38 +137,41 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .sidebar-nav a {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: #666;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: var(--ink-4);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.15s, color 0.15s;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.15s;
 }
 
-.sidebar-nav a:hover {
-  background: #141414;
-  color: #ccc;
+.sidebar-nav a:hover { color: var(--ink-2); }
+.sidebar-nav a:hover .nav-dot { background: var(--ink-4); }
+
+.sidebar-nav a.active { color: var(--accent); }
+.sidebar-nav a.active .nav-dot {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
 }
 
-.sidebar-nav a.active {
-  background: rgba(74, 222, 128, 0.1);
-  color: #4ade80;
-}
-
-.nav-icon {
-  font-size: 16px;
-  width: 20px;
-  text-align: center;
+.nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
   flex-shrink: 0;
+  transition: all 0.15s;
 }
 
 /* User section at bottom */
@@ -194,23 +180,22 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
   position: relative;
   transition: background 0.15s;
+  margin-top: 8px;
 }
 
-.sidebar-user:hover {
-  background: #141414;
-}
+.sidebar-user:hover { background: var(--surface); }
 
 .avatar {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
-  background: #5b4fcf;
-  color: #fff;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -226,8 +211,8 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
 .user-name {
   font-size: 13px;
-  font-weight: 500;
-  color: #ccc;
+  font-weight: 600;
+  color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -235,14 +220,14 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
 .user-email {
   font-size: 11px;
-  color: #555;
+  color: var(--ink-4);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .chevron {
-  color: #444;
+  color: var(--ink-4);
   font-size: 18px;
   line-height: 1;
   flex-shrink: 0;
@@ -253,11 +238,11 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   bottom: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #161616;
-  border: 1px solid #222;
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
   padding: 6px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .menu-item {
@@ -266,47 +251,43 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   gap: 10px;
   width: 100%;
   padding: 9px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
   border: none;
-  color: #888;
+  color: var(--ink-3);
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.15s;
 }
 
 .menu-item:hover {
-  background: #1f1f1f;
-  color: #fff;
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
-.logout-item:hover {
-  color: #f87171;
-}
+.logout-item:hover { color: var(--danger); }
 
-/* Main content */
+/* ═══════════ Main content ═══════════ */
 .main-content {
   margin-left: 220px;
   width: calc(100% - 220px);
   flex: 1;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/* Bottom nav — mobile only */
-.bottom-nav {
-  display: none;
-}
+/* ═══════════ Bottom nav — mobile only, text-first ═══════════ */
+.bottom-nav { display: none; }
 
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
+  .sidebar { display: none; }
 
   .main-content {
     margin-left: 0;
-    height: calc(100vh - 64px - env(safe-area-inset-bottom, 0px));
+    height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -317,43 +298,46 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
     bottom: 0;
     left: 0;
     right: 0;
-    background: #0a0a0a;
-    border-top: 1px solid #1a1a1a;
+    height: 72px;
+    background: rgba(8, 8, 8, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
     z-index: 200;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  .bottom-nav-item {
-    height: 64px;
-  }
-
-  .bottom-nav-item {
+  .nav-item {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--ink-4);
     text-decoration: none;
-    color: #555;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     transition: color 0.15s;
   }
 
-  .bottom-nav-item.active {
-    color: #4ade80;
+  .nav-item .nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: transparent;
+    margin-bottom: 6px;
+    transition: all 0.15s;
   }
 
-  .bottom-nav-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .bottom-nav-label {
-    font-size: 10px;
+  .nav-item.active { color: var(--accent); }
+  .nav-item.active .nav-dot {
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
   }
 }
 </style>

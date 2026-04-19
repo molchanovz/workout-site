@@ -136,6 +136,35 @@ export interface ITrainingUpdateTimedApproachParams {
   duration: number
 }
 
+export interface ISuggestedCategory {
+  id: number,
+  title: string
+}
+
+export interface ISuggestedExercise {
+  exerciseId: number,
+  title: string,
+  categoryId: number,
+  categoryTitle: string,
+  frequency: number
+}
+
+export interface ISuggestedTraining {
+  mode: string,
+  date: string,
+  categories: Array<ISuggestedCategory>,
+  exercises: Array<ISuggestedExercise>
+}
+
+export interface ITrainingSuggestParams {
+  mode: string
+}
+
+export interface ITrainingApplySuggestionParams {
+  trainingId: number,
+  exerciseIds: Array<number>
+}
+
 export interface IStatsPREntry {
   exerciseId: number,
   exerciseTitle: string,
@@ -211,6 +240,12 @@ export const factory = (send: any) => ({
     },
     updateTimedApproach(params: ITrainingUpdateTimedApproachParams): Promise<boolean> {
       return send('training.UpdateTimedApproach', params)
+    },
+    suggest(params: ITrainingSuggestParams): Promise<ISuggestedTraining> {
+      return send('training.Suggest', params)
+    },
+    applySuggestion(params: ITrainingApplySuggestionParams): Promise<boolean> {
+      return send('training.ApplySuggestion', params)
     }
   },
   stats: {

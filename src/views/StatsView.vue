@@ -1,70 +1,80 @@
 <template>
-  <div class="stats">
-    <h1 class="page-title">Прогресс</h1>
+  <div class="scroll">
+    <div class="page-head">
+      <div>
+        <p class="page-sub">За 12 недель</p>
+        <h1 class="page-title">Прогресс</h1>
+      </div>
+    </div>
 
-    <div v-if="loading" class="loading">Загрузка...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <div v-if="loading" class="muted">Загрузка...</div>
+    <div v-else-if="error" class="err">{{ error }}</div>
 
     <template v-else>
-      <!-- Top cards: streak, month, year -->
-      <div class="cards-row">
-        <div class="card">
-          <p class="card-label">Стрик</p>
-          <p class="card-value">{{ streak?.currentStreak ?? 0 }}</p>
-          <p class="card-sub">{{ pluralWeeks(streak?.currentStreak ?? 0) }} подряд</p>
+      <div class="stat-kpi-row">
+        <div class="kpi accent">
+          <div class="kp-val">
+            {{ streak?.currentStreak ?? 0 }}<span class="kp-unit">нед</span>
+          </div>
+          <div class="kp-sub">Стрик</div>
         </div>
-        <div class="card">
-          <p class="card-label">В этом месяце</p>
-          <p class="card-value">{{ streak?.monthCount ?? 0 }}</p>
-          <p class="card-sub">{{ pluralTrainings(streak?.monthCount ?? 0) }}</p>
+        <div class="kpi">
+          <div class="kp-val">{{ streak?.monthCount ?? 0 }}</div>
+          <div class="kp-sub">Месяц</div>
         </div>
-        <div class="card">
-          <p class="card-label">В этом году</p>
-          <p class="card-value">{{ streak?.yearCount ?? 0 }}</p>
-          <p class="card-sub">{{ pluralTrainings(streak?.yearCount ?? 0) }}</p>
+        <div class="kpi">
+          <div class="kp-val">{{ streak?.yearCount ?? 0 }}</div>
+          <div class="kp-sub">Год</div>
         </div>
       </div>
 
-      <!-- Weekly volume chart -->
-      <div class="section">
-        <p class="section-label">Объём нагрузки по неделям, кг</p>
+      <div class="chart-section">
+        <div class="chart-head">
+          <p class="chart-title">Объём · тонн/нед</p>
+          <span v-if="volumeDelta != null" class="chart-metric">
+            {{ volumeDelta >= 0 ? '↗' : '↘' }} {{ volumeDelta >= 0 ? '+' : '' }}{{ volumeDelta }}%
+          </span>
+        </div>
         <div class="chart">
-          <div
-            v-for="bar in volumeBars"
-            :key="bar.week"
-            class="chart-col"
-          >
-            <div class="chart-bar-wrap">
+          <div v-for="bar in volumeBars" :key="bar.week" class="chart-col">
+            <div class="cbar-wrap">
               <div
-                class="chart-bar"
-                :style="{ height: bar.heightPct + '%' }"
+                class="cbar"
                 :class="{ active: bar.isCurrentWeek }"
+                :style="{ height: bar.heightPct + '%' }"
               ></div>
             </div>
-            <span class="chart-label">{{ bar.label }}</span>
+            <span class="cl" :class="{ curr: bar.isCurrentWeek }">{{ bar.label }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Personal records table -->
-      <div class="section">
-        <p class="section-label">Личные рекорды</p>
-        <div v-if="personalRecords.length" class="pr-table">
-          <div class="pr-header">
-            <span>Упражнение</span>
-            <span>Лучший сет</span>
-            <span>1RM (расч.)</span>
-            <span class="pr-date-col">Дата</span>
+      <div class="section-head">
+        <h3>Личные рекорды</h3>
+        <span v-if="freshCount" class="more">★ {{ freshCount }} {{ pluralFresh(freshCount) }}</span>
+      </div>
+
+      <div v-if="personalRecords.length" class="chart-section pr-list">
+        <div
+          v-for="(pr, i) in personalRecords"
+          :key="pr.exerciseId"
+          class="pr-row"
+        >
+          <div class="pr-rank">{{ String(i + 1).padStart(2, '0') }}</div>
+          <div class="pr-info">
+            <div class="pr-name">
+              {{ pr.exerciseTitle }}
+              <span v-if="isFresh(pr.achievedAt)" class="pr-fresh">★ NEW</span>
+            </div>
+            <div class="pr-date">{{ formatDate(pr.achievedAt) }}</div>
           </div>
-          <div v-for="pr in personalRecords" :key="pr.exerciseId" class="pr-row">
-            <span class="pr-name">{{ pr.exerciseTitle }}</span>
-            <span class="pr-set">{{ pr.maxWeight }} кг × {{ pr.reps }} повт.</span>
-            <span class="pr-1rm">{{ pr.est1rm }} кг</span>
-            <span class="pr-date pr-date-col">{{ formatDate(pr.achievedAt) }}</span>
+          <div class="pr-num">
+            <div class="pr-max">{{ pr.maxWeight }}<span class="pr-unit">×{{ pr.reps }}</span></div>
+            <div class="pr-1rm">1RM {{ pr.est1rm }}</div>
           </div>
         </div>
-        <p v-else class="empty">Нет данных — добавьте первую тренировку</p>
       </div>
+      <div v-else class="empty">Нет рекордов — добавьте первую тренировку</div>
     </template>
   </div>
 </template>
@@ -83,14 +93,14 @@ async function loadStats() {
   loading.value = true
   error.value = null
   try {
-    const [streakRes, volumeRes, prRes] = await Promise.all([
+    const [s, v, pr] = await Promise.all([
       api.stats.streak(),
       api.stats.weeklyVolume({ weeks: 12 }),
       api.stats.personalRecords(),
     ])
-    streak.value = streakRes
-    weeklyVolume.value = Array.isArray(volumeRes) ? volumeRes : []
-    personalRecords.value = Array.isArray(prRes) ? prRes : []
+    streak.value = s
+    weeklyVolume.value = Array.isArray(v) ? v : []
+    personalRecords.value = Array.isArray(pr) ? pr : []
   } catch (e) {
     error.value = e.message
   } finally {
@@ -98,23 +108,46 @@ async function loadStats() {
   }
 }
 
+const currentISOWeek = computed(() => startOfISOWeek(new Date()))
+
 const volumeBars = computed(() => {
   const vols = weeklyVolume.value
   if (!vols.length) return []
   const maxVol = Math.max(...vols.map(v => v.volume), 1)
-  const todayMon = startOfISOWeek(new Date())
-
   return vols.map(v => {
     const [, mm, dd] = v.week.split('-')
-    const isCurrentWeek = v.week === todayMon
     return {
       week: v.week,
       heightPct: maxVol > 0 ? Math.max((v.volume / maxVol) * 100, v.volume > 0 ? 4 : 0) : 0,
       label: `${parseInt(dd)}.${mm}`,
-      isCurrentWeek,
+      isCurrentWeek: v.week === currentISOWeek.value,
     }
   })
 })
+
+const volumeDelta = computed(() => {
+  const v = weeklyVolume.value
+  if (v.length < 2) return null
+  const half = Math.floor(v.length / 2)
+  const recent = v.slice(-half)
+  const prev = v.slice(0, half)
+  const sum = arr => arr.reduce((s, w) => s + (w.volume || 0), 0)
+  const a = sum(prev)
+  const b = sum(recent)
+  if (a === 0) return b > 0 ? 100 : null
+  return Math.round(((b - a) / a) * 100)
+})
+
+const freshCount = computed(() => personalRecords.value.filter(pr => isFresh(pr.achievedAt)).length)
+
+function isFresh(d) {
+  if (!d) return false
+  const achieved = new Date(d)
+  const now = new Date()
+  return achieved.getFullYear() === now.getFullYear()
+    && achieved.getMonth() === now.getMonth()
+    && achieved.getDate() === now.getDate()
+}
 
 function startOfISOWeek(d) {
   const wd = d.getDay() || 7
@@ -130,248 +163,271 @@ function formatDate(str) {
   return new Date(str).toLocaleString('ru', { day: 'numeric', month: 'short' })
 }
 
-function pluralWeeks(n) {
+function pluralFresh(n) {
   const m10 = n % 10, m100 = n % 100
-  if (m100 >= 11 && m100 <= 19) return 'недель'
-  if (m10 === 1) return 'неделя'
-  if (m10 >= 2 && m10 <= 4) return 'недели'
-  return 'недель'
-}
-
-function pluralTrainings(n) {
-  const m10 = n % 10, m100 = n % 100
-  if (m100 >= 11 && m100 <= 19) return 'тренировок'
-  if (m10 === 1) return 'тренировка'
-  if (m10 >= 2 && m10 <= 4) return 'тренировки'
-  return 'тренировок'
+  if (m100 >= 11 && m100 <= 19) return 'новых'
+  if (m10 === 1) return 'новый'
+  if (m10 >= 2 && m10 <= 4) return 'новых'
+  return 'новых'
 }
 
 onMounted(loadStats)
 </script>
 
 <style scoped>
-.stats {
-  min-height: 100vh;
-  background: #0d0d0d;
-  color: #fff;
-  padding: 48px 48px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0 100px;
+  max-width: 430px;
+  margin: 0 auto;
+  width: 100%;
 }
 
+.page-head {
+  padding: 14px 20px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
 .page-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 32px;
-}
-
-/* Top cards */
-.cards-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.card {
-  background: #111;
-  border: 1px solid #1e1e1e;
-  border-radius: 16px;
-  padding: 20px 22px;
-}
-
-.card-label {
-  font-size: 11px;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 8px;
-}
-
-.card-value {
-  font-size: 40px;
+  font-size: 36px;
   font-weight: 800;
-  color: #4ade80;
-  margin: 0 0 4px;
+  margin: 0;
+  letter-spacing: -0.03em;
   line-height: 1;
 }
-
-.card-sub {
-  font-size: 12px;
-  color: #555;
-  margin: 0;
-}
-
-/* Section */
-.section {
-  background: #111;
-  border: 1px solid #1e1e1e;
-  border-radius: 16px;
-  padding: 20px 22px;
-  margin-bottom: 24px;
-}
-
-.section-label {
+.page-sub {
   font-size: 11px;
-  color: #555;
+  color: var(--ink-4);
+  margin: 0 0 6px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 16px;
+  font-weight: 600;
 }
 
-/* Chart */
+.stat-kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 4px 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.kpi {
+  padding: 16px 14px;
+  border-right: 1px solid var(--border);
+}
+.kpi:last-child { border-right: 0; }
+.kpi .kp-val {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.kpi.accent .kp-val { color: var(--accent); }
+.kp-unit {
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-left: 3px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.kpi .kp-sub {
+  font-size: 10px;
+  color: var(--ink-4);
+  margin-top: 6px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.chart-section {
+  margin: 0 20px 18px;
+  padding: 20px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+.chart-title {
+  font-size: 11px;
+  color: var(--ink-4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 700;
+}
+.chart-metric {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 .chart {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
-  height: 100px;
+  gap: 4px;
+  height: 110px;
+  margin: 0 -2px;
 }
-
 .chart-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  flex: 1;
+  height: 100%;
 }
-
-.chart-bar-wrap {
-  height: 80px;
+.cbar-wrap {
+  flex: 1;
   width: 100%;
   display: flex;
   align-items: flex-end;
 }
-
-.chart-bar {
+.cbar {
   width: 100%;
-  min-height: 2px;
-  border-radius: 4px 4px 0 0;
-  background: #3a3a3a;
-  transition: height 0.3s;
+  min-height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: #252525;
 }
-
-.chart-bar.active {
-  background: #4ade80;
+.cbar.active {
+  background: var(--accent);
+  box-shadow: 0 0 14px rgba(196, 181, 253, 0.35);
 }
-
-.chart-label {
-  font-size: 9px;
-  color: #444;
-  white-space: nowrap;
+.cl {
+  font-size: 8.5px;
+  color: var(--ink-4);
+  font-weight: 600;
 }
+.cl.curr { color: var(--accent); }
 
-/* PR table */
-.pr-table {
+.section-head {
+  padding: 8px 20px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 0;
+  justify-content: space-between;
+  align-items: baseline;
 }
-
-.pr-header {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 1fr;
-  padding: 0 0 10px;
-  border-bottom: 1px solid #1e1e1e;
-  font-size: 11px;
-  color: #444;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.pr-row {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 1fr;
-  padding: 10px 0;
-  border-bottom: 1px solid #161616;
-  align-items: center;
-}
-
-.pr-row:last-child {
-  border-bottom: none;
-}
-
-.pr-name {
-  font-size: 14px;
-  color: #ccc;
-}
-
-.pr-set {
-  font-size: 14px;
-  color: #fff;
-  font-weight: 600;
-}
-
-.pr-1rm {
-  font-size: 14px;
-  color: #4ade80;
-  font-weight: 600;
-}
-
-.pr-date {
-  font-size: 12px;
-  color: #555;
-}
-
-/* Misc */
-.empty {
+.section-head h3 {
   font-size: 13px;
-  color: #444;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
   margin: 0;
 }
-
-.loading {
-  color: #555;
-  font-size: 14px;
+.section-head .more {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
-.error {
-  color: #f87171;
+.pr-list { padding: 8px 18px; }
+.pr-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+.pr-row:last-child { border-bottom: 0; }
+.pr-rank {
+  width: 22px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pr-info { min-width: 0; }
+.pr-name {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pr-fresh {
+  color: var(--gold);
+  margin-left: 8px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.pr-date {
+  font-size: 10px;
+  color: var(--ink-4);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+.pr-num { text-align: right; }
+.pr-max {
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.pr-unit {
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 600;
+  margin-left: 3px;
+}
+.pr-1rm {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.empty {
+  margin: 0 20px;
+  padding: 28px 0;
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 13px;
+}
+.muted {
+  margin: 0 20px;
+  padding: 40px 0;
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 13px;
+}
+.err {
+  margin: 0 20px;
+  padding: 12px 14px;
+  background: rgba(255, 92, 92, 0.08);
+  border: 1px solid rgba(255, 92, 92, 0.3);
+  border-radius: 12px;
+  color: var(--danger);
   font-size: 13px;
 }
 
-/* Responsive */
-@media (max-width: 960px) {
-  .pr-date-col {
-    display: none;
-  }
-
-  .pr-header,
-  .pr-row {
-    grid-template-columns: 2fr 1.5fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .stats {
-    padding: 24px 16px 80px;
-    min-height: unset;
-  }
-
-  .page-title {
-    font-size: 22px;
-    margin-bottom: 20px;
-  }
-
-  .cards-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .card-value {
-    font-size: 32px;
-  }
-
-  .chart {
-    height: 80px;
-  }
-
-  .pr-header,
-  .pr-row {
-    grid-template-columns: 2fr 1.2fr 0.9fr;
-    font-size: 13px;
-  }
-
-  .pr-date-col {
-    display: none;
-  }
+@media (min-width: 1024px) {
+  .scroll { max-width: 760px; padding: 24px 0 60px; }
+  .page-head { padding: 4px 28px 22px; }
+  .page-title { font-size: 44px; }
+  .stat-kpi-row { margin: 4px 28px 22px; }
+  .kpi { padding: 22px 20px; }
+  .kpi .kp-val { font-size: 40px; }
+  .chart-section { margin: 0 28px 22px; padding: 24px 24px; }
+  .chart { height: 140px; }
+  .section-head { padding-left: 28px; padding-right: 28px; }
+  .empty, .muted, .err { margin-left: 28px; margin-right: 28px; }
 }
 </style>
