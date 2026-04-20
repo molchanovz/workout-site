@@ -77,6 +77,7 @@
   </div>
 
   <!-- Bottom sheet -->
+  <Teleport to="body">
   <template v-if="selectedDateStr">
     <div class="sheet-backdrop" @click="selectedDateStr = null"></div>
     <div class="sheet">
@@ -110,6 +111,7 @@
       </template>
     </div>
   </template>
+  </Teleport>
   </div>
 </template>
 

@@ -52,6 +52,7 @@
     </template>
 
     <!-- Modal: add exercise -->
+    <Teleport to="body">
     <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
       <div class="modal">
         <div class="sheet-handle"></div>
@@ -103,8 +104,10 @@
         </div>
       </div>
     </div>
+    </Teleport>
 
     <!-- Modal: suggest template -->
+    <Teleport to="body">
     <div v-if="showSuggest" class="modal-backdrop" @click.self="showSuggest = false">
       <div class="modal">
         <div class="sheet-handle"></div>
@@ -136,6 +139,7 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
