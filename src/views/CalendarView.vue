@@ -1,4 +1,5 @@
 <template>
+  <div>
   <div class="scroll">
     <div class="page-head">
       <div>
@@ -19,7 +20,10 @@
       <span v-for="d in WEEKDAYS" :key="d">{{ d }}</span>
     </div>
 
-    <div class="days">
+    <div v-if="loading" class="days">
+      <div v-for="i in 42" :key="i" class="skeleton sk-cell"></div>
+    </div>
+    <div v-else class="days">
       <div
         v-for="cell in gridCells"
         :key="cell.key"
@@ -40,7 +44,10 @@
     <div class="section-head" style="margin-top: 18px;">
       <h3>Тренировки · {{ monthOnly }}</h3>
     </div>
-    <div class="hist" v-if="monthTrainings.length">
+    <div v-if="loading" class="hist-skel">
+      <div v-for="i in 3" :key="i" class="skeleton sk-hist-row"></div>
+    </div>
+    <div v-else-if="monthTrainings.length" class="hist">
       <div
         v-for="t in monthTrainings"
         :key="t.id"
@@ -103,6 +110,7 @@
       </template>
     </div>
   </template>
+  </div>
 </template>
 
 <script setup>
@@ -128,6 +136,7 @@ const selectedDateStr = ref(null)
 
 const trainings = ref([])
 const error = ref(null)
+const loading = ref(true)
 
 const monthLabel = computed(() => {
   const d = new Date(currentYear.value, currentMonth.value, 1)
@@ -243,6 +252,7 @@ async function loadTrainings() {
     const result = await api.training.list({ from, to })
     trainings.value = Array.isArray(result) ? result : (result?.items || [])
   } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 function pluralTrain(n) {
@@ -555,5 +565,24 @@ onMounted(loadTrainings)
   .days { margin: 0 28px 24px; gap: 6px; }
   .section-head { padding-left: 28px; padding-right: 28px; }
   .hist { margin: 0 28px; }
+}
+
+/* Skeletons */
+.sk-cell {
+  aspect-ratio: 1;
+  border-radius: 12px;
+}
+.hist-skel {
+  margin: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-hist-row {
+  height: 56px;
+  border-radius: 12px;
+}
+@media (min-width: 1024px) {
+  .hist-skel { margin: 0 28px; }
 }
 </style>

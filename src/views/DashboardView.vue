@@ -9,6 +9,24 @@
       <div class="avatar">{{ avatarLetter }}</div>
     </div>
 
+    <!-- Skeleton while loading -->
+    <template v-if="loading">
+      <div class="day-strip-skel">
+        <div v-for="i in 7" :key="i" class="skeleton sk-day"></div>
+      </div>
+      <div class="skeleton sk-hero"></div>
+      <div class="big-stats">
+        <div class="skeleton sk-stat"></div>
+        <div class="skeleton sk-stat"></div>
+        <div class="skeleton sk-stat"></div>
+      </div>
+      <div class="section-head"><div class="skeleton sk-section-title"></div></div>
+      <div class="hist-skel">
+        <div v-for="i in 3" :key="i" class="skeleton sk-hist-row"></div>
+      </div>
+    </template>
+
+    <template v-else>
     <!-- Day strip -->
     <div class="day-strip" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
       <div
@@ -131,6 +149,8 @@
       <p class="empty-sub">Здесь появятся твои завершённые тренировки.</p>
     </div>
 
+    </template>
+
     <div v-if="error" class="error">{{ error }}</div>
   </div>
 </template>
@@ -172,6 +192,7 @@ const trainings = ref([])
 const streak = ref({ currentStreak: 0, monthCount: 0, yearCount: 0 })
 const selectedDetail = ref(null)
 const error = ref(null)
+const loading = ref(true)
 
 const avatarLetter = computed(() => {
   const n = currentUser.value?.name || currentUser.value?.email || '?'
@@ -320,10 +341,12 @@ function onTouchEnd(e) {
   }
 }
 
-onMounted(() => {
-  loadTrainings()
-  loadStreak()
-  loadSelectedDetail()
+onMounted(async () => {
+  try {
+    await Promise.all([loadTrainings(), loadStreak(), loadSelectedDetail()])
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
@@ -744,5 +767,44 @@ onMounted(() => {
   .section-head { padding-left: 28px; padding-right: 28px; }
   .hist { margin: 0 28px; }
   .empty-state { margin-left: 28px; margin-right: 28px; }
+}
+
+/* Skeletons */
+.day-strip-skel {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px 20px;
+}
+.sk-day {
+  flex: 1;
+  min-width: 42px;
+  height: 58px;
+  border-radius: 12px;
+}
+.sk-hero {
+  margin: 0 20px 14px;
+  height: 210px;
+  border-radius: 24px;
+}
+.sk-stat {
+  height: 86px;
+  border-radius: 0;
+}
+.big-stats .sk-stat:first-child { border-top-left-radius: 18px; border-bottom-left-radius: 18px; }
+.big-stats .sk-stat:last-child { border-top-right-radius: 18px; border-bottom-right-radius: 18px; }
+.sk-section-title {
+  height: 14px;
+  width: 90px;
+  border-radius: 4px;
+}
+.hist-skel {
+  margin: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-hist-row {
+  height: 56px;
+  border-radius: 12px;
 }
 </style>
